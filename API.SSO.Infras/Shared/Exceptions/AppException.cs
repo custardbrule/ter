@@ -10,8 +10,8 @@ namespace API.SSO.Infras.Shared.Exceptions
     public class AppException : Exception
     {
         public readonly HttpStatusCode StatusCode;
-        public readonly object Errors;
-        public AppException(string message, HttpStatusCode statusCode, object errors) : base(message)
+        public readonly object? Errors;
+        public AppException(string message, HttpStatusCode statusCode, object? errors = null) : base(message)
         {
             StatusCode = statusCode;
             Errors = errors;

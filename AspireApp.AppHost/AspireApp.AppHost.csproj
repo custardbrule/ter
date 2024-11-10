@@ -14,4 +14,8 @@
 	<PackageReference Include="Aspire.Hosting.NodeJs" Version="8.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\API.SSO\API.SSO.csproj" />
+  </ItemGroup>
+
 </Project>

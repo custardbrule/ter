@@ -1,8 +1,10 @@
 ﻿using API.SSO.Domain;
-using API.SSO.Infras.Features.UserManagement;
+using API.SSO.Infras.Features.UserManagement.Notifications;
 using API.SSO.Infras.Services;
+using API.SSO.Infras.Services.Jobs;
 using API.SSO.Infras.Shared;
 using API.SSO.Infras.Shared.Exceptions;
+using Core.Utils;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -14,9 +16,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace API.SSO.Infras.Features.UserManagement
+namespace API.SSO.Infras.Features.UserManagement.Commands
 {
-    public record RegisterRequest(string FirstName, string LastName, string Email, string PhoneNumber, string Password) : IRequest;
+    public record RegisterRequest(string FirstName, string LastName, string Email, string PhoneNumber, string Password) : IRequest<bool>;
 
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
@@ -38,28 +40,28 @@ namespace API.SSO.Infras.Features.UserManagement
         }
     }
 
-    public class RegisterHandler : IRequestHandler<RegisterRequest>
+    public class RegisterHandler : IRequestHandler<RegisterRequest,bool>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMailService _mailService;
-        private readonly IScheduler _scheduler;
+        private readonly IMediator _mediator;
 
-        public RegisterHandler(UserManager<ApplicationUser> userManager, IMailService mailService, IScheduler scheduler)
+        public RegisterHandler(UserManager<ApplicationUser> userManager, IMailService mailService, IMediator mediator)
         {
             _userManager = userManager;
             _mailService = mailService;
-            _scheduler = scheduler;
+            _mediator = mediator;
         }
 
-        public async Task Handle(RegisterRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(RegisterRequest request, CancellationToken cancellationToken)
         {
             var user = new ApplicationUser(request.FirstName, request.LastName, request.Email, request.PhoneNumber);
             var res = await _userManager.CreateAsync(user, request.Password);
 
             if (!res.Succeeded) throw new AppException(nameof(RegisterRequest), HttpStatusCode.BadRequest, res.Errors.ToDictionary(v => v.Code, v => new string[] { v.Description }));
 
-            // TODO throw to job
-            // _mailService.SendMail([user.Email], "Register Success", EMailTempalte.Register, new { });
+            await _mediator.Publish(new RegisterEmailNotify(user.Email!), cancellationToken);
+            return res.Succeeded;
         }
     }
 }
