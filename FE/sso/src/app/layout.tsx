@@ -1,9 +1,11 @@
 "use client";
-import "@/public/assets/css/globals.css";
+import "@/assets/css/globals.css";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/lib/providers/store-provider";
 import AppThemeProvider from "@/lib/providers/app-theme-provider";
 
@@ -19,11 +21,12 @@ export default function RootLayout({
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <StoreProvider>
-        <AppThemeProvider>
-          <body>{children}</body>
-        </AppThemeProvider>
-      </StoreProvider>
+      <body>
+        <ToastContainer />
+        <StoreProvider>
+          <AppThemeProvider>{children}</AppThemeProvider>
+        </StoreProvider>
+      </body>
     </html>
   );
 }

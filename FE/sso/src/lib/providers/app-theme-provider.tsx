@@ -43,7 +43,7 @@ export default function AppThemeProvider({
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <body>{children}</body>
+      {children}
     </ThemeProvider>
   );
 }

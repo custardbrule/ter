@@ -7,7 +7,9 @@ export const authSlice = createSlice({
     user: {},
   },
   reducers: {
-    login: (state, action) => {},
+    login: (state, action) => {
+      console.log(state, action);
+    },
   },
 });
 
