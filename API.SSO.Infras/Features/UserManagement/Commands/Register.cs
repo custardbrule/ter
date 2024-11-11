@@ -18,7 +18,8 @@ using System.Threading.Tasks;
 
 namespace API.SSO.Infras.Features.UserManagement.Commands
 {
-    public record RegisterRequest(string FirstName, string LastName, string Email, string PhoneNumber, string Password) : IRequest<bool>;
+    public record RegisterResponse(string FirstName, string LastName, string Email);
+    public record RegisterRequest(string FirstName, string LastName, string Email, string PhoneNumber, string Password) : IRequest<RegisterResponse>;
 
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
@@ -40,7 +41,7 @@ namespace API.SSO.Infras.Features.UserManagement.Commands
         }
     }
 
-    public class RegisterHandler : IRequestHandler<RegisterRequest,bool>
+    public class RegisterHandler : IRequestHandler<RegisterRequest, RegisterResponse>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMailService _mailService;
@@ -53,7 +54,7 @@ namespace API.SSO.Infras.Features.UserManagement.Commands
             _mediator = mediator;
         }
 
-        public async Task<bool> Handle(RegisterRequest request, CancellationToken cancellationToken)
+        public async Task<RegisterResponse> Handle(RegisterRequest request, CancellationToken cancellationToken)
         {
             var user = new ApplicationUser(request.FirstName, request.LastName, request.Email, request.PhoneNumber);
             var res = await _userManager.CreateAsync(user, request.Password);
@@ -61,7 +62,7 @@ namespace API.SSO.Infras.Features.UserManagement.Commands
             if (!res.Succeeded) throw new AppException(nameof(RegisterRequest), HttpStatusCode.BadRequest, res.Errors.ToDictionary(v => v.Code, v => new string[] { v.Description }));
 
             await _mediator.Publish(new RegisterEmailNotify(user.Email!), cancellationToken);
-            return res.Succeeded;
+            return new RegisterResponse(request.FirstName, request.LastName, request.Email);
         }
     }
 }

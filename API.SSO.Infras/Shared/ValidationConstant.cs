@@ -9,6 +9,7 @@ namespace API.SSO.Infras.Shared
     public class ValidationConstant
     {
         public const string NOTNULL = "{0} is required.";
+        public const string NOTFOUND = "{0} is not found.";
         public const string INVALID = "{0} is invalid.";
         public const string INVALIDFORMAT = "{0} is in invalid format.";
     }

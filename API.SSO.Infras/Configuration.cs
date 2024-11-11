@@ -95,7 +95,7 @@ namespace API.SSO.Infras
 
                     // Enable the authorization code flow.
                     options.AllowAuthorizationCodeFlow()
-                           .SetAuthorizationEndpointUris("connect/authorize")
+                           .SetAuthorizationEndpointUris("connect/authorize", "connect/authorize/accept")
                            .SetLogoutEndpointUris("connect/logout")
                            .SetTokenEndpointUris("connect/token")
                            .SetUserinfoEndpointUris("connect/userinfo");

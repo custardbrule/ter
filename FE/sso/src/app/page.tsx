@@ -1,3 +1,4 @@
+"use client";
 import { useAppSelector } from "@/lib/hooks/store";
 import { redirect } from "next/navigation";
 
