@@ -3,6 +3,9 @@ import { TextField, Button } from "@mui/material";
 import type { Metadata } from "next";
 import { useState } from "react";
 
+import API_ENDPOINTS from "@/lib/constants/api";
+import REGEX from "@/lib/constants/regex";
+
 export const metadata: Metadata = {
   title: "...",
   description: "...",
@@ -14,7 +17,14 @@ export default function LoginForm() {
 
   const submit = async () => {
     // validate email and password
+    if (!REGEX.EMAIL.test(email)) {
+    }
+
     // login
+    fetch(API_ENDPOINTS.LOGIN, {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
   };
 
   return (
