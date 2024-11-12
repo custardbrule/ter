@@ -30,7 +30,7 @@ namespace API.SSO.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginRequest request) => Ok(await _mediator.Send(request));
+        public async Task<IActionResult> Login([FromBody]LoginRequest request) => Ok(await _mediator.Send(request));
 
         [HttpGet]
         [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
