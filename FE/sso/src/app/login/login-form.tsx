@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import API_ENDPOINTS from "@/shared/constants/api";
 import REGEX from "@/shared/constants/regex";
 import APP_MESSAGE from "@/shared/constants/message";
+import MIMETYPES from "@/shared/constants/mime-type";
 
 export default function LoginForm() {
   const [password, setPassword] = useState("");
@@ -35,10 +36,14 @@ export default function LoginForm() {
     // login
     fetch(API_ENDPOINTS.LOGIN, {
       method: "POST",
+      headers: {
+        "Content-Type": MIMETYPES[".json"],
+      },
       body: JSON.stringify({ email, password }),
     })
       .then(async (res) => {
         const data = await res.json();
+        console.log(data);
         if (res.ok) return data;
 
         throw { message: res.statusText, status: res.status, data: data };

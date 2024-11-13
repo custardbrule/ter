@@ -12,6 +12,18 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureService(builder.Configuration);
 
+builder.Services.AddCors(c =>
+{
+    c.DefaultPolicyName = "Default";
+    c.AddDefaultPolicy(options =>
+    {
+        options
+         .AllowAnyMethod()
+         .AllowAnyHeader()
+         .WithOrigins(builder.Configuration.GetRequiredSection("Cors:AllowDomains").Get<string[]>()!);
+    });
+});
+
 builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();

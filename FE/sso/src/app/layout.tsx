@@ -22,10 +22,10 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
-        <ToastContainer />
-        <StoreProvider>
-          <AppThemeProvider>{children}</AppThemeProvider>
-        </StoreProvider>
+        <AppThemeProvider>
+          <ToastContainer />
+          <StoreProvider>{children}</StoreProvider>
+        </AppThemeProvider>
       </body>
     </html>
   );
