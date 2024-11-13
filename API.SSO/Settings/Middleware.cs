@@ -25,9 +25,21 @@ namespace API.SSO.Settings
             }
             catch (AppException ex)
             {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = (int)ex.StatusCode,
+                    Type = "BussinessException",
+                    Title = "Bussiness error",
+                    Detail = ex.Message,
+                };
+                if (ex.Errors is not null)
+                {
+                    problemDetails.Extensions["errors"] = ex.Errors;
+                }
+
                 context.Response.StatusCode = (int)ex.StatusCode;
                 context.Response.ContentType = MediaTypeNames.Application.Json;
-                await context.Response.WriteAsJsonAsync(ex.Errors);
+                await context.Response.WriteAsJsonAsync(problemDetails);
             }
             catch (ValidationException ex)
             {
@@ -50,9 +62,17 @@ namespace API.SSO.Settings
             }
             catch (Exception ex)
             {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Type = "InternalServerError",
+                    Title = "Something went wrong!",
+                    Detail = ex.Message,
+                };
+
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 context.Response.ContentType = MediaTypeNames.Application.Json;
-                await context.Response.WriteAsJsonAsync(new { Message = "Something went wrong!", Detail = ex.Message });
+                await context.Response.WriteAsJsonAsync(problemDetails);
             }
         }
     }

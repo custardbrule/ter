@@ -28,9 +28,6 @@ namespace API.SSO.Infras.Features.UserManagement.Queries
             RuleFor(r => r.Email)
                 .NotEmpty().WithMessage(string.Format(ValidationConstant.NOTNULL, nameof(LoginRequest.Email)))
                 .EmailAddress().WithMessage(string.Format(ValidationConstant.INVALIDFORMAT, nameof(LoginRequest.Email)));
-            RuleFor(r => r.Password)
-                .NotEmpty().WithMessage(string.Format(ValidationConstant.NOTNULL, nameof(LoginRequest.Password)))
-                .Matches(RegexConstant.PASSWORD).WithMessage(string.Format(ValidationConstant.INVALID, nameof(LoginRequest.Password)));
         }
     }
 

@@ -7,6 +7,7 @@ import API_ENDPOINTS from "@/shared/constants/api";
 import REGEX from "@/shared/constants/regex";
 import APP_MESSAGE from "@/shared/constants/message";
 import MIMETYPES from "@/shared/constants/mime-type";
+import handlerResponseError from "@/shared/modules/api-error-handler";
 
 export default function LoginForm() {
   const [password, setPassword] = useState("");
@@ -43,12 +44,22 @@ export default function LoginForm() {
     })
       .then(async (res) => {
         const data = await res.json();
-        console.log(data);
         if (res.ok) return data;
 
-        throw { message: res.statusText, status: res.status, data: data };
+        throw data;
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        const error = handlerResponseError(err);
+        switch (error.type) {
+          case "ValidationFailure":
+            if (typeof error.errors?.["Email"] === "undefined") return;
+
+            setIsEmailValid(false);
+            break;
+          default:
+            break;
+        }
+      });
   };
 
   return (

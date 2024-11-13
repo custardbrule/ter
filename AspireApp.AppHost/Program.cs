@@ -5,7 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddProject<Projects.API_SSO>("api-sso")
     .WithEnvironment("BROWSER", "none")
-    .WithHttpEndpoint(port: 5200, name: "sso-api-https");
+    .WithHttpEndpoint(port: 5200, name: "sso-api-http");
 
 var hosting = builder.Configuration.GetSection("Hosting");
 var ssoReactPort = hosting.GetSection("SsoReact").GetValue<int>("Port");
