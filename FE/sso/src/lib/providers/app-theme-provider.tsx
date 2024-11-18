@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme, CssBaseline, PaletteMode } from "@mui/material";
+import { ToastContainer } from "react-toastify";
 
 export default function AppThemeProvider({
   children,
@@ -34,14 +35,22 @@ export default function AppThemeProvider({
     };
   }, []);
 
-  const darkTheme = createTheme({
-    palette: {
-      mode: theme,
-    },
-  });
+  const getTheme = () =>
+    createTheme({
+      palette: {
+        mode: theme,
+      },
+    });
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={getTheme}>
+      <ToastContainer
+        theme={theme}
+        position="top-right"
+        autoClose={5000}
+        newestOnTop={false}
+        closeOnClick
+      />
       <CssBaseline />
       {children}
     </ThemeProvider>

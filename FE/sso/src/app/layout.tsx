@@ -5,7 +5,6 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/lib/providers/store-provider";
 import AppThemeProvider from "@/lib/providers/app-theme-provider";
 
@@ -23,7 +22,6 @@ export default function RootLayout({
       </head>
       <body>
         <AppThemeProvider>
-          <ToastContainer />
           <StoreProvider>{children}</StoreProvider>
         </AppThemeProvider>
       </body>

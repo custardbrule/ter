@@ -1,15 +1,13 @@
 "use client";
-import { useAppSelector } from "@/lib/hooks/store";
-import { redirect } from "next/navigation";
 
-export default function Home() {
-  const isAuth = useAppSelector((state) => state.auth.isLogin);
+import withAuth from "@/shared/components/auth/auth-hoc";
 
-  if (!isAuth) redirect("/login");
-
+function Home() {
   return (
     <div className="flex justify-center items-center h-screen">
       Welcome, you have logged in.
     </div>
   );
 }
+
+export default withAuth(Home);

@@ -2,17 +2,20 @@
 import { TextField, Button } from "@mui/material";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 import API_ENDPOINTS from "@/shared/constants/api";
 import REGEX from "@/shared/constants/regex";
 import APP_MESSAGE from "@/shared/constants/message";
 import MIMETYPES from "@/shared/constants/mime-type";
-import handlerResponseError from "@/shared/modules/api-error-handler";
+import APP_ENDPOINTS from "@/shared/constants/endpoints";
 
 export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
+
+  const router = useRouter();
 
   const onEmailChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -21,18 +24,13 @@ export default function LoginForm() {
     setEmail(e.target.value);
   };
 
+  const onRegister = () => router.push(APP_ENDPOINTS.REGISTER);
+
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // validate email and password
-    if (!REGEX.EMAIL.test(email)) {
-      setIsEmailValid(false);
-      return toast("halo", {
-        position: "top-right",
-        autoClose: 5000,
-        pauseOnHover: false,
-      });
-    }
+    if (!REGEX.EMAIL.test(email)) return setIsEmailValid(false);
 
     // login
     fetch(API_ENDPOINTS.LOGIN, {
@@ -48,16 +46,22 @@ export default function LoginForm() {
 
         throw data;
       })
-      .catch((err) => {
-        const error = handlerResponseError(err);
-        switch (error.type) {
+      .catch((err: ApiError) => {
+        switch (err.type) {
           case "ValidationFailure":
-            if (typeof error.errors?.["Email"] === "undefined") return;
-
+            if (
+              typeof err.errors?.find(
+                (e) => e.propertyName.toLowerCase() === "email"
+              ) === "undefined"
+            )
+              return;
             setIsEmailValid(false);
             break;
-          default:
+          case "BussinessException":
+            toast.error(`${err.status} - ${err.detail}`);
             break;
+          default:
+            throw err;
         }
       });
   };
@@ -97,7 +101,9 @@ export default function LoginForm() {
           />
         </div>
         <div className="flex flex-row-reverse gap-2 w-full">
-          <Button variant="text">Register</Button>
+          <Button variant="text" type="button" onClick={() => onRegister()}>
+            Register
+          </Button>
           <Button variant="contained" type="submit">
             Login
           </Button>
