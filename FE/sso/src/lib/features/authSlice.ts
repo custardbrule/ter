@@ -9,6 +9,7 @@ export const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       console.log(state, action);
+      return state;
     },
   },
 });

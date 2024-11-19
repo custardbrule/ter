@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import RegisterForm from "./register-form";
 
 export const metadata: Metadata = {
   title: "Register",
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <div className="flex justify-center items-center h-screen">hello</div>;
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <RegisterForm />
+    </div>
+  );
 }

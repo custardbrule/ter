@@ -9,6 +9,9 @@ import REGEX from "@/shared/constants/regex";
 import APP_MESSAGE from "@/shared/constants/message";
 import MIMETYPES from "@/shared/constants/mime-type";
 import APP_ENDPOINTS from "@/shared/constants/endpoints";
+import { useAppDispatch } from "@/lib/hooks/store";
+import { login } from "@/lib/features/authSlice";
+import useAppFetch from "@/lib/hooks/fetch";
 
 export default function LoginForm() {
   const [password, setPassword] = useState("");
@@ -16,6 +19,8 @@ export default function LoginForm() {
   const [isEmailValid, setIsEmailValid] = useState(true);
 
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const fetcher = useAppFetch();
 
   const onEmailChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -33,16 +38,15 @@ export default function LoginForm() {
     if (!REGEX.EMAIL.test(email)) return setIsEmailValid(false);
 
     // login
-    fetch(API_ENDPOINTS.LOGIN, {
-      method: "POST",
-      headers: {
-        "Content-Type": MIMETYPES[".json"],
-      },
-      body: JSON.stringify({ email, password }),
-    })
+    fetcher(
+      API_ENDPOINTS.LOGIN,
+      "POST",
+      { "Content-Type": MIMETYPES[".json"] },
+      JSON.stringify({ email, password })
+    )
       .then(async (res) => {
         const data = await res.json();
-        if (res.ok) return data;
+        if (res.ok) return dispatch(login(data));
 
         throw data;
       })
@@ -68,7 +72,7 @@ export default function LoginForm() {
 
   return (
     <div className="flex flex-col justify-center items-center p-16 gap-8 sm:w-[32rem]">
-      <p>Login</p>
+      <h1 className="text-3xl font-bold">Login</h1>
       <form className="flex flex-col gap-8 w-full" onSubmit={(e) => submit(e)}>
         <div>
           {!isEmailValid && (
