@@ -28,6 +28,12 @@ class AppValidator {
   max(value: number, max: number): boolean {
     return this.hasValue(value) && value <= max;
   }
+
+  match(value: string, regex: RegExp | string): boolean {
+    return this.hasValue(value) && typeof regex === "string"
+      ? new RegExp(regex).test(value)
+      : (regex as RegExp).test(value);
+  }
 }
 
 const validator = new AppValidator();

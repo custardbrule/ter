@@ -30,7 +30,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      return this.props.fallback;
+      return this.props.fallback || <h1>Something went wrong.</h1>;
     }
 
     return this.props.children;

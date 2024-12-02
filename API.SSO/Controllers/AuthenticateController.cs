@@ -40,6 +40,6 @@ namespace API.SSO.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterRequest request) => Ok(await _mediator.Send(request));
+        public async Task<IActionResult> Register([FromBody]RegisterRequest request) => Ok(await _mediator.Send(request));
     }
 }
