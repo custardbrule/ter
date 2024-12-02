@@ -46,7 +46,10 @@ export default function LoginForm() {
     )
       .then(async (res) => {
         const data = await res.json();
-        if (res.ok) return dispatch(login(data));
+        if (res.ok) {
+          dispatch(login(data));
+          return router.push(APP_ENDPOINTS.HOME);
+        }
 
         throw data;
       })
@@ -88,6 +91,7 @@ export default function LoginForm() {
             label="Account"
             variant="outlined"
             size="small"
+            autoComplete="email"
             value={email}
             onChange={(e) => onEmailChange(e)}
           />

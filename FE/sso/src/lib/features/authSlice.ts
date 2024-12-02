@@ -1,15 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
+import Cookies from "js-cookie";
+
+const TOKEN_KEY = "accessToken";
 
 export const authSlice = createSlice({
   name: "auth",
   initialState: {
     isLogin: false,
-    user: {},
+    user: { accessToken: null },
   },
   reducers: {
     login: (state, action) => {
-      console.log(state, action);
-      return state;
+      Cookies.set(TOKEN_KEY, action.payload.accessToken, {
+        expires: 1 / 24, // day
+        path: "",
+      });
+
+      state.isLogin = true;
+      state.user = action.payload;
     },
   },
 });

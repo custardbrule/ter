@@ -1,4 +1,5 @@
 const APP_ENDPOINTS = {
+  HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
 };

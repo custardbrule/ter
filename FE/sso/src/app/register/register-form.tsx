@@ -1,8 +1,8 @@
 "use client";
 import { TextField, Button } from "@mui/material";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "react-toastify";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import API_ENDPOINTS from "@/shared/constants/api";
 import REGEX from "@/shared/constants/regex";
@@ -29,6 +29,7 @@ export default function RegisterForm() {
     phoneNumber: "",
   });
 
+  const router = useRouter();
   const fetcher = useAppFetch();
 
   const onInputChange = <T extends keyof typeof registerInfo>(
@@ -83,7 +84,7 @@ export default function RegisterForm() {
         const data = await res.json();
         if (res.ok) {
           toast.success(APP_MESSAGE.REGISTER_SUCCESS());
-          return redirect(APP_ENDPOINTS.LOGIN);
+          return router.push(APP_ENDPOINTS.LOGIN);
         }
 
         throw data;

@@ -12,7 +12,7 @@ const useAppFetch = () => {
     return fetch(url, {
       method,
       headers: {
-        ...(isLogin && { Authorization: `Bearer ${user.token}` }),
+        ...(isLogin && { Authorization: `Bearer ${user.accessToken}` }),
         ...headers,
       },
       body,
