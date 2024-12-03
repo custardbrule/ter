@@ -23,8 +23,9 @@ namespace API.SSO.Infras
     {
         public static IServiceCollection ConfigureService(this IServiceCollection services, IConfiguration configuration)
         {
-            // Register mail service
+            // Register services
             services.AddScoped<IMailService, MailService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // setup app context
             services.RegisterAppDbContext(configuration);
