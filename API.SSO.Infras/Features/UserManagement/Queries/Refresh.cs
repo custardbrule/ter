@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace API.SSO.Infras.Features.UserManagement.Queries
 {
-    public record RefreshResponse(string AccessToken, string RefreshToken, int ExpiredTime);
+    public record RefreshResponse(string AccessToken, string RefreshToken);
     public record RefreshRequest(string Access, string Refresh) : IRequest<RefreshResponse>;
 
     public class RefreshRequestValidator : AbstractValidator<RefreshRequest>
@@ -39,11 +39,8 @@ namespace API.SSO.Infras.Features.UserManagement.Queries
 
         public async Task<RefreshResponse> Handle(RefreshRequest request, CancellationToken cancellationToken)
         {
-            var principal = _authService.GetPrincipalFromExpiredToken(request.Access);
-            if (principal is null) throw new AppException("", HttpStatusCode.BadRequest);
-
-            var (AccessToken, RefreshToken, ExpiredTime) = await _authService.GenerateJwt(request.Email, request.Password, cancellationToken);
-            return new RefreshResponse(AccessToken, RefreshToken, ExpiredTime);
+            var (AccessToken, RefreshToken) = await _authService.RefreshJwt(request.Access, request.Refresh, cancellationToken);
+            return new RefreshResponse(AccessToken, RefreshToken);
         }
     }
 }

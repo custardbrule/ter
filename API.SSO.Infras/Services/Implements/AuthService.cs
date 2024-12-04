@@ -2,6 +2,7 @@
 using API.SSO.Infras.Shared;
 using API.SSO.Infras.Shared.Exceptions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -29,7 +30,7 @@ namespace API.SSO.Infras.Services.Implements
             _config = config;
         }
 
-        public async Task<(string AccessToken, string RefreshToken, int ExpiredTime)> GenerateJwt(string email, string password, CancellationToken cancellationToken)
+        public async Task<(string AccessToken, string RefreshToken)> GenerateJwt(string email, string password, CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null) throw new AppException(string.Format(ValidationConstant.NOTFOUND, email), HttpStatusCode.NotFound);
@@ -37,56 +38,33 @@ namespace API.SSO.Infras.Services.Implements
             var signInResult = await _signInManager.CheckPasswordSignInAsync(user, password, false);
             if (!signInResult.Succeeded) throw new AppException(string.Format(ValidationConstant.INVALID, nameof(password)), HttpStatusCode.BadRequest);
 
-            // generate access token
             var principal = await _signInManager.CreateUserPrincipalAsync(user);
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var expiredTime = _config.GetRequiredSection("Jwt:ExpInMinute").Get<int>();
 
-            var token = new JwtSecurityToken(
-                _config["Jwt:Issuer"],
-                _config["Jwt:Issuer"],
-                principal.Claims,
-                expires: DateTime.Now.AddMinutes(expiredTime),
-              signingCredentials: credentials);
-
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            // generate refresh token
-            var refreshToken = Convert.ToBase64String(user.Id.ToByteArray());
+            var accessToken = GenerateJwt(principal.Claims);
+            var refreshToken = GenerateJwtRefresh(user.Id.ToString());
 
 
-            return (accessToken, refreshToken, expiredTime);
+            return (accessToken, refreshToken);
         }
 
-        public async Task<(string AccessToken, string RefreshToken, int ExpiredTime)> GenerateJwt(string id, CancellationToken cancellationToken)
+        public async Task<(string AccessToken, string RefreshToken)> RefreshJwt(string token, string refresh, CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user is null) throw new AppException(string.Format(ValidationConstant.NOTFOUND, id), HttpStatusCode.NotFound);
+            _ = GetPrincipalFromRefresh(refresh);
+            var oldPrincipal = GetPrincipalFromExpiredToken(token) ?? throw new AppException("", HttpStatusCode.BadRequest);
+            var id = oldPrincipal.Claims.First(v => v.Type is Claims.Subject).Value;
 
-            // generate access token
-            var principal = await _signInManager.CreateUserPrincipalAsync(user);
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var expiredTime = _config.GetRequiredSection("Jwt:ExpInMinute").Get<int>();
+            var user = await _userManager.FindByIdAsync(id) ?? throw new AppException(string.Format(ValidationConstant.NOTFOUND, id), HttpStatusCode.NotFound);
+            var newPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
 
-            var token = new JwtSecurityToken(
-                _config["Jwt:Issuer"],
-                _config["Jwt:Issuer"],
-                principal.Claims,
-                expires: DateTime.Now.AddMinutes(expiredTime),
-              signingCredentials: credentials);
-
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            // generate refresh token
-            var refreshToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(id));
+            var accessToken = GenerateJwt(newPrincipal.Claims);
+            var refreshToken = GenerateJwtRefresh(user.Id.ToString());
 
 
-            return (accessToken, refreshToken, expiredTime);
+            return (accessToken, refreshToken);
         }
 
-        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        #region validate
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -103,5 +81,57 @@ namespace API.SSO.Infras.Services.Implements
 
             return principal;
         }
+
+        private ClaimsPrincipal GetPrincipalFromRefresh(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:RefreshSecret"]!)),
+                ValidateLifetime = true
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            if (securityToken is not JwtSecurityToken) throw new SecurityTokenException("Invalid token");
+
+            return principal;
+        }
+        #endregion
+
+        #region generate
+        private string GenerateJwt(IEnumerable<Claim> claims)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                _config["Jwt:Issuer"],
+                _config["Jwt:Issuer"],
+                claims,
+                expires: DateTime.Now.AddMinutes(_config.GetRequiredSection("Jwt:ExpInMinute").Get<int>()),
+              signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string GenerateJwtRefresh(string id)
+        {
+
+            // generate access token
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:RefreshSecret"]!));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var claims = new Claim[] { new Claim(Claims.Subject, id) };
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+              signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        #endregion
     }
 }

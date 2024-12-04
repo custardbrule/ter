@@ -9,8 +9,7 @@ namespace API.SSO.Infras.Services
 {
     public interface IAuthService
     {
-        Task<(string AccessToken, string RefreshToken, int ExpiredTime)> GenerateJwt(string email, string password, CancellationToken cancellationToken = default);
-        Task<(string AccessToken, string RefreshToken, int ExpiredTime)> GenerateJwt(string id, CancellationToken cancellationToken);
-        ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
+        Task<(string AccessToken, string RefreshToken)> GenerateJwt(string email, string password, CancellationToken cancellationToken = default);
+        Task<(string AccessToken, string RefreshToken)> RefreshJwt(string token, string refresh, CancellationToken cancellationToken = default);
     }
 }

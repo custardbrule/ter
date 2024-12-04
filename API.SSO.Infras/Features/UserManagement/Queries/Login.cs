@@ -19,7 +19,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace API.SSO.Infras.Features.UserManagement.Queries
 {
-    public record LoginResponse(string AccessToken, string RefreshToken, int ExpiredTime);
+    public record LoginResponse(string AccessToken, string RefreshToken);
     public record LoginRequest(string Email, string Password) : IRequest<LoginResponse>;
 
     public class LoginRequestValidator : AbstractValidator<LoginRequest>
@@ -43,8 +43,8 @@ namespace API.SSO.Infras.Features.UserManagement.Queries
 
         public async Task<LoginResponse> Handle(LoginRequest request, CancellationToken cancellationToken)
         {
-            var (AccessToken, RefreshToken, ExpiredTime) = await _authService.GenerateJwt(request.Email, request.Password, cancellationToken);
-            return new LoginResponse(AccessToken, RefreshToken, ExpiredTime);
+            var (AccessToken, RefreshToken) = await _authService.GenerateJwt(request.Email, request.Password, cancellationToken);
+            return new LoginResponse(AccessToken, RefreshToken);
         }
     }
 }

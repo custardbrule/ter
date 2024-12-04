@@ -32,6 +32,9 @@ namespace API.SSO.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody]LoginRequest request) => Ok(await _mediator.Send(request));
 
+        [HttpPost]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request) => Ok(await _mediator.Send(request));
+
         [HttpGet]
         [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
         public string Get()
