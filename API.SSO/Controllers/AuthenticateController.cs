@@ -19,7 +19,6 @@ using Azure.Core;
 namespace API.SSO.Controllers
 {
     [Route("[controller]/[action]")]
-    [AllowAnonymous]
     public class AuthenticateController : Controller
     {
         private readonly IMediator _mediator;
@@ -30,9 +29,11 @@ namespace API.SSO.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody]LoginRequest request) => Ok(await _mediator.Send(request));
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request) => Ok(await _mediator.Send(request));
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request) => Ok(await _mediator.Send(request));
 
         [HttpGet]
@@ -43,6 +44,6 @@ namespace API.SSO.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody]RegisterRequest request) => Ok(await _mediator.Send(request));
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request) => Ok(await _mediator.Send(request));
     }
 }

@@ -4,6 +4,7 @@ using API.SSO.Infras.Shared.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -50,13 +51,13 @@ namespace API.SSO.Infras.Services.Implements
         public async Task<(string AccessToken, string RefreshToken)> RefreshJwt(string token, string refresh, CancellationToken cancellationToken = default)
         {
             _ = GetPrincipalFromRefresh(refresh);
-            var oldPrincipal = GetPrincipalFromExpiredToken(token) ?? throw new AppException("", HttpStatusCode.BadRequest);
-            var id = oldPrincipal.Claims.First(v => v.Type is Claims.Subject).Value;
+            var identity = await GetClaimsIdentity(token) ?? throw new AppException("", HttpStatusCode.BadRequest);
+            var id = identity.Claims.First(v => v.Type is ClaimTypes.NameIdentifier).Value;
 
             var user = await _userManager.FindByIdAsync(id) ?? throw new AppException(string.Format(ValidationConstant.NOTFOUND, id), HttpStatusCode.NotFound);
-            var newPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
+            var principal = await _signInManager.CreateUserPrincipalAsync(user);
 
-            var accessToken = GenerateJwt(newPrincipal.Claims);
+            var accessToken = GenerateJwt(principal.Claims);
             var refreshToken = GenerateJwtRefresh(user.Id.ToString());
 
 
@@ -64,7 +65,7 @@ namespace API.SSO.Infras.Services.Implements
         }
 
         #region validate
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        private async Task<ClaimsIdentity> GetClaimsIdentity(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -75,14 +76,14 @@ namespace API.SSO.Infras.Services.Implements
                 ValidateLifetime = false
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken) throw new SecurityTokenException("Invalid token");
+            var jsonWebTokenHandler = new JsonWebTokenHandler();
+            var tokenValidationResult = await jsonWebTokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
+            if (!tokenValidationResult.IsValid) throw new SecurityTokenException("Invalid token");
 
-            return principal;
+            return tokenValidationResult.ClaimsIdentity;
         }
 
-        private ClaimsPrincipal GetPrincipalFromRefresh(string token)
+        private async Task<ClaimsIdentity> GetPrincipalFromRefresh(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -90,14 +91,15 @@ namespace API.SSO.Infras.Services.Implements
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:RefreshSecret"]!)),
-                ValidateLifetime = true
+                ValidateLifetime = true,
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken) throw new SecurityTokenException("Invalid token");
+            var jsonWebTokenHandler = new JsonWebTokenHandler();
+            var tokenValidationResult = await jsonWebTokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
+            if (!tokenValidationResult.IsValid) throw new SecurityTokenException("Invalid token");
 
-            return principal;
+            return tokenValidationResult.ClaimsIdentity;
+
         }
         #endregion
 
@@ -119,11 +121,10 @@ namespace API.SSO.Infras.Services.Implements
 
         private string GenerateJwtRefresh(string id)
         {
-
             // generate access token
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:RefreshSecret"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claims = new Claim[] { new Claim(Claims.Subject, id) };
+            var claims = new Claim[] { new Claim(ClaimTypes.NameIdentifier, id) };
 
             var token = new JwtSecurityToken(
                 claims: claims,

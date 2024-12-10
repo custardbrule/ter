@@ -1,21 +1,7 @@
-﻿using API.SSO.Domain;
-using API.SSO.Infras.Services;
+﻿using API.SSO.Infras.Services;
 using API.SSO.Infras.Shared;
-using API.SSO.Infras.Shared.Exceptions;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace API.SSO.Infras.Features.UserManagement.Queries
 {
