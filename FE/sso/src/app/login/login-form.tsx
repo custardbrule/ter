@@ -38,12 +38,11 @@ export default function LoginForm() {
     if (!REGEX.EMAIL.test(email)) return setIsEmailValid(false);
 
     // login
-    fetcher(
-      API_ENDPOINTS.LOGIN,
-      "POST",
-      { "Content-Type": MIMETYPES[".json"] },
-      JSON.stringify({ email, password })
-    )
+    fetcher(API_ENDPOINTS.LOGIN, {
+      method: "POST",
+      headers: { "Content-Type": MIMETYPES[".json"] },
+      body: JSON.stringify({ email, password }),
+    })
       .then(async (res) => {
         const data = await res.json();
         if (res.ok) {

@@ -70,59 +70,11 @@ namespace API.SSO.Infras
             services.AddDbContextPool<AppDbContext>(o =>
             {
                 o.UseSqlServer(configuration.GetConnectionString("Development"), c => c.MigrationsAssembly("API.SSO"));
-                o.UseOpenIddict();
             });
 
             services
                 .AddIdentity<ApplicationUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<AppDbContext>();
-
-            services
-                .AddOpenIddict()
-                .AddCore(options =>
-                {
-                    // Configure OpenIddict to use the Entity Framework Core stores and models.
-                    // Note: call ReplaceDefaultEntities() to replace the default entities.
-                    options.UseEntityFrameworkCore()
-                           .UseDbContext<AppDbContext>();
-                })
-                .AddServer(options =>
-                {
-                    // Enable the token endpoint.
-                    options.SetTokenEndpointUris("connect/token");
-
-                    // Enable the client credentials flow.
-                    options.AllowClientCredentialsFlow();
-
-                    // Enable the authorization code flow.
-                    options.AllowAuthorizationCodeFlow()
-                           .SetAuthorizationEndpointUris("connect/authorize", "connect/authorize/accept")
-                           .SetLogoutEndpointUris("connect/logout")
-                           .SetTokenEndpointUris("connect/token")
-                           .SetUserinfoEndpointUris("connect/userinfo");
-
-                    // Register the signing and encryption credentials.
-                    options.AddDevelopmentEncryptionCertificate()
-                           .AddDevelopmentSigningCertificate();
-
-                    // Register the ASP.NET Core host and configure the ASP.NET Core options.
-                    options.UseAspNetCore()
-                           .EnableAuthorizationEndpointPassthrough()
-                           .EnableLogoutEndpointPassthrough()
-                           .EnableStatusCodePagesIntegration()
-                           .EnableTokenEndpointPassthrough();
-
-                    // Define const Key this should be private secret key  stored in some safe place
-                    string key = configuration.GetRequiredSection("Jwt:Secret").Value!;
-                    var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-                    options.AddSigningKey(securityKey);
-                })
-                .AddValidation(options =>
-                {
-                    options.SetIssuer(configuration.GetRequiredSection("Jwt:Issuer").Value!);
-                    options.UseLocalServer();
-                    options.UseAspNetCore();
-                });
 
             return services;
         }

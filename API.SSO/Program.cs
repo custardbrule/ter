@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services
+    .AddAntiforgery()
     .AddControllers()
     .AddNewtonsoftJson(cfg =>
     {
@@ -22,8 +23,7 @@ builder.Services.ConfigureService(builder.Configuration);
 
 builder.Services.AddCors(c =>
 {
-    c.DefaultPolicyName = "Default";
-    c.AddDefaultPolicy(options =>
+    c.AddPolicy("Default", options =>
     {
         options
          .AllowAnyMethod()
@@ -32,7 +32,7 @@ builder.Services.AddCors(c =>
     });
 });
 
-builder.Services.AddHostedService<Worker>();
+//builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
 
@@ -46,7 +46,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors();
+app.UseCors("Default");
 
 app.UseAuthentication();
 app.UseAuthorization();

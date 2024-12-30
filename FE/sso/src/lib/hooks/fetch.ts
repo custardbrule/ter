@@ -3,19 +3,13 @@ import { useAppSelector } from "./store";
 const useAppFetch = () => {
   const { isLogin, user } = useAppSelector((state) => state.auth) as any;
 
-  const handleFetch = (
-    url: string,
-    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-    headers: HeadersInit,
-    body: BodyInit
-  ) => {
+  const handleFetch = (url: string | URL | Request, init: RequestInit) => {
     return fetch(url, {
-      method,
+      ...init,
       headers: {
         ...(isLogin && { Authorization: `Bearer ${user.accessToken}` }),
-        ...headers,
+        ...init.headers,
       },
-      body,
     });
   };
 

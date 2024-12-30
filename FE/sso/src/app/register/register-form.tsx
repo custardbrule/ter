@@ -74,12 +74,11 @@ export default function RegisterForm() {
     if (!validate()) return;
 
     // register
-    fetcher(
-      API_ENDPOINTS.REGISTER,
-      "POST",
-      { "Content-Type": MIMETYPES[".json"] },
-      JSON.stringify(registerInfo)
-    )
+    fetcher(API_ENDPOINTS.REGISTER, {
+      method: "POST",
+      headers: { "Content-Type": MIMETYPES[".json"] },
+      body: JSON.stringify(registerInfo),
+    })
       .then(async (res) => {
         const data = await res.json();
         if (res.ok) {
